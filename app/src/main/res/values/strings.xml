@@ -3,4 +3,7 @@
     <string name="action_settings">Settings</string>
     <string name="output_y">Correct</string>
     <string name="output_n">Incorrect</string>
+    <string name="regAccSuc">Account registered</string>
+    <string name="regAccSucc">Failed to create an account</string>
+    <string name="registrationTitle">User registration</string>
 </resources>

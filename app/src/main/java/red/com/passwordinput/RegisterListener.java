@@ -1,62 +1,65 @@
 package red.com.passwordinput;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.support.v4.content.ContextCompat;
+import android.app.Activity;
+import android.content.Intent;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
-public class ButtonListener implements View.OnClickListener {
+import java.util.ArrayList;
 
-    private MainActivity mainActivity;
-    private TextView output;
+public class RegisterListener implements View.OnClickListener {
+
+    private RegisterActivity registerActivity;
     private EditText pass, login;
-    private ValueAnimator valueAnimator;
 
-    private int ye, no;
-    private String corr, neCorr;
+    private Intent forResult;
 
-    public ButtonListener(MainActivity ma) {
-        mainActivity = ma;
+    private ArrayList<String> lpList;
+
+    private FrequentCalls faq = new FrequentCalls();
+
+    public RegisterListener(RegisterActivity ra) {
+        registerActivity = ra;
 
         // Getting references
-        output = mainActivity.findViewById(R.id.output);
-        pass = mainActivity.findViewById(R.id.passField);
-        login = mainActivity.findViewById(R.id.loginField);
+        pass = registerActivity.findViewById(R.id.passRegField);
+        login = registerActivity.findViewById(R.id.loginRegField);
+        Intent caller = registerActivity.getIntent();
 
-        // Initializing animations
-        valueAnimator = ObjectAnimator.ofFloat(output,
-                "alpha",
-                 0.0f, 255.0f);
-        valueAnimator.setDuration(10000);
+        // Initializing values
+        forResult = new Intent();
+        lpList = caller.getStringArrayListExtra("lpArray");
 
-        // Value initialization
-        no = ContextCompat.getColor(mainActivity.getApplicationContext(), R.color.output_n);
-        ye = ContextCompat.getColor(mainActivity.getApplicationContext(), R.color.output_y);
-        corr = mainActivity.getString(R.string.output_y);
-        neCorr = mainActivity.getString(R.string.output_n);
+        login.setText(caller.getStringExtra("loginString"));
     }
 
     @Override
     public void onClick(View v) {
+        String loginStr = login.getText().toString();
+        String passStr = pass.getText().toString();
+
         // Dummy test
-        if (login.getText().toString().matches("") ||
-            pass.getText().toString().matches(""))
+        if (loginStr.matches("") || passStr.matches(""))
             return;
 
-        if (login.getText().toString().matches(mainActivity.login) &&
-                pass.getText().toString().matches(mainActivity.password)) {
-            output.setText(corr);
-            output.setTextColor(ye);
-        }
-        else {
-            //// TODO: Intent to register activity
+        boolean loginExists = faq.checkForMatches(lpList, ":", 0, loginStr);
+        if (loginExists) {
+            forResult.putExtra("output",
+                    "User with this name already exists, returned to login screen");
+            registerActivity.setResult(Activity.RESULT_CANCELED, forResult);
+            registerActivity.finish();
+            return;
         }
 
-        login.setText("");
-        pass.setText("");
+        // For Security Measures
+        if (passStr.length() < 4) {
+            pass.setText("");
+            pass.setHint("Insecure!");
+            return;
+        }
 
-        valueAnimator.start();
+        forResult.putExtra("newUserData", loginStr + ":" + passStr);
+        registerActivity.setResult(Activity.RESULT_OK, forResult);
+        registerActivity.finish();
     }
 }
